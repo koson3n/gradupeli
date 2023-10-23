@@ -1,5 +1,6 @@
 import pygame
 import graphics as gp
+import sounds as snd
 
 pygame.init()
 
@@ -16,9 +17,16 @@ jumping = False
 currentBg = 0
 lastBg = 0
 
-#Gamesettings
+#List of backgrounds that have puzzles (nums)
+#params: [background number, puzzle type, combination]
+puzzleList = [[1, 'lockpuzzle', [1, 2, 3]]]
+
+#List of lock combos
+lockCombinations = [[1, 2, 3]]
+
+#Gamesettings (60 normal, higher for testing purposes, cos the dude moves quicker)
 clock = pygame.time.Clock()
-fps = 60
+fps = 200
 
 #Character that is controlled by the player
 class Player:
@@ -69,23 +77,68 @@ class GameItem:
     def setDrawn (self,bol):
         self.drawn = bol
 
-class PuzzleScreen:
-    def __init__(self, bgNumber):
+class LockPuzzle3:   
+    def __init__(self, comb, crrbg):   
         self.sprite = gp.ObjectSprite(1, 'taskbase')
+        self.lockwheel1 = Button(1, 'wheel', 100, 70)
+        self.lockwheel2 = Button(1, 'wheel', 200, 70)
+        self.lockwheel3 = Button(1, 'wheel', 300, 70)
+        self.openChest = gp.ObjectSprite(1, 'chest_open')
+        self.done = False
+        self.notifShown = False
+        self.soundPlayed = False
+        self.bgNumber = crrbg
         self.puzzleActive = False
-        self.bgNumber = bgNumber
-        self.text = "moi"
+        self.text = 'Chest has a combination lock'
+        self.textSurf = getTextSurface(self.text)
+        self.backbutton = Button(1, 'back_btn', 230, 330) 
+        self.comb1 = comb[0]
+        self.comb2 = comb[1]
+        self.comb3 = comb[2]
+
+    def checkIfDone (self):
+        if self.lockwheel1.currNum == self.comb1 and self.lockwheel2.currNum == self.comb2 and self.lockwheel3.currNum == self.comb3:
+            if self.soundPlayed == False:
+                chestSnd.play()
+                self.soundPlayed = True
+            self.closeLockPuzzle()
+            self.done = True
+
+    def openLockPuzzle(self):
+        self.setPuzzleState(True)
+        spritegroup3.add(self.sprite)      
+        spritegroup3.add(self.backbutton.sprite)
+        spritegroup3.add(self.lockwheel1.sprite)
+        spritegroup3.add(self.lockwheel2.sprite)
+        spritegroup3.add(self.lockwheel3.sprite)
+
+    def closeLockPuzzle(self):
+        self.setPuzzleState(False)
+        spritegroup3.empty()
+
+    def setPuzzleState (self, active):
+        self.puzzleActive = active
+
+    def getPuzzleState (self):
+        return self.puzzleActive
+    
+class Notification:
+    def __init__(self, txt):
+        self.text = txt
+        self.sprite = gp.ObjectSprite(1, 'notificationbase')
+        self.active = False
+        self.textSurf = getTextSurface(self.text)
         self.backbutton = Button(1, 'back_btn', 230, 330)
 
-    def closePuzzle(self):
-        spritegroup3.empty()
-        self.puzzleActive = False
-
-    def openPuzzle(self):
+    def openNotification(self):
+        self.active = True
         spritegroup3.add(self.sprite)
         spritegroup3.add(self.backbutton.sprite)
-        self.puzzleActive = True
 
+    def closeNotification(self):
+        self.active = False
+        lockPuzzle3.notifShown = True
+        spritegroup3.empty()
 
 #Future development
 class Enemy:
@@ -106,14 +159,31 @@ class Button:
         self.name = name
         self.scale = scale
         self.sprite = gp.ObjectSprite(1, name,x,y)
+        self.currNum = 0
+        self.text = str(self.currNum)
+        self.textSurf = getTextSurface(self.text)
 
     def isClicked(self):
         mousePos = pygame.mouse.get_pos()
         return self.sprite.rect.collidepoint(mousePos)
+    
+    def getCurrentNumberAsSurface (self):
+        return getTextSurface(str(self.currNum))
+    
+    def update(self):
+        self.currNum = lockPuzzleCalc(self.currNum)
+        self.textSurf = self.getCurrentNumberAsSurface()
 
-def drawText(text):
+def getTextSurface(text):
     font = pygame.font.SysFont(None, 30)
     return font.render(text, True, (0, 0, 0))
+
+def lockPuzzleCalc (curr):
+    if curr < 9:
+        curr += 1
+    else:
+        curr = 0
+    return curr
 
 #Variables for various purposes in the loop
 gameRun = True
@@ -129,8 +199,9 @@ chest = GameItem('env_chest3', 0.5)
 chest.decSprite.rect.x = 250
 chest.decSprite.rect.y = 500
 
-puzzleScreen = PuzzleScreen(1)
-#backbtn = Button(1, 'back_btn', 230, 330)
+lockPuzzle3 = LockPuzzle3([1,2,3], 1)
+
+doneNotif = Notification("The chest opens! You found a key from the chest!")
 
 #Spritegrouping
 #group 1: player (drawn last = on top)
@@ -140,8 +211,10 @@ spritegroup1.add(player.playerSprite)
 #group 2: interactive items
 spritegroup2 = pygame.sprite.Group()
 
-#group 3: decoration 
+#group 3: puzzle stuff
 spritegroup3 = pygame.sprite.Group()
+
+chestSnd = snd.loadSound("chest_open_snd")
 
 #Main gameloop
 while gameRun:
@@ -149,17 +222,21 @@ while gameRun:
     #Sets tickrate to the game (capping fps to 60)
     clock.tick(fps)
 
-    if puzzleScreen.puzzleActive:
-        screen.blit(drawText("Moi"), (10,10))
-
     #Setting playscreen background and drawing sprites
     screen.blit(bgArray[currentBg], (0,0))
     spritegroup2.draw(screen)
     spritegroup1.draw(screen)
     spritegroup3.draw(screen)
 
-    if puzzleScreen.puzzleActive:
-        screen.blit(drawText("Moi"), (30,30))
+    if lockPuzzle3.getPuzzleState():
+        screen.blit(lockPuzzle3.textSurf, (20,20))
+        screen.blit(lockPuzzle3.lockwheel1.textSurf, (140,180))
+        screen.blit(lockPuzzle3.lockwheel2.textSurf, (240,180))
+        screen.blit(lockPuzzle3.lockwheel3.textSurf, (340,180))
+
+    if lockPuzzle3.done and (lockPuzzle3.notifShown == False):
+        doneNotif.openNotification()
+        screen.blit(doneNotif.textSurf, (20,20))
     
     #Button press / release events
     for event in pygame.event.get():
@@ -170,25 +247,37 @@ while gameRun:
                 moveLeft = True
             if event.key == pygame.K_d:
                 moveRight = True
-            if event.key == pygame.K_ESCAPE and puzzleScreen.puzzleActive:
-                puzzleScreen.closePuzzle()
-            if event.key == pygame.K_f and player.getColWithObj and puzzleScreen.puzzleActive == False:
-                puzzleScreen.openPuzzle()
+            if event.key == pygame.K_ESCAPE and lockPuzzle3.getPuzzleState():
+                lockPuzzle3.closePuzzle()
+            if event.key == pygame.K_f and player.getColWithObj and lockPuzzle3.getPuzzleState() == False:
+                lockPuzzle3.setPuzzleState(True)
+                lockPuzzle3.openLockPuzzle()
+                
 
         if event.type == pygame.MOUSEMOTION:
-            print(pygame.mouse.get_pos())
+            #print(pygame.mouse.get_pos())
+            print(lockPuzzle3.getPuzzleState())
 
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if puzzleScreen.backbutton.isClicked():
-                puzzleScreen.closePuzzle()
-
-            
-
+            if lockPuzzle3.backbutton.isClicked():
+                lockPuzzle3.closeLockPuzzle()
+            if doneNotif.backbutton.isClicked():
+                doneNotif.closeNotification()
+            if lockPuzzle3.lockwheel1.isClicked():
+                lockPuzzle3.lockwheel1.update()
+            if lockPuzzle3.lockwheel2.isClicked():
+                lockPuzzle3.lockwheel2.update()
+            if lockPuzzle3.lockwheel3.isClicked():
+                lockPuzzle3.lockwheel3.update()
+             
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
                 moveLeft = False
             if event.key == pygame.K_d:
                 moveRight = False
+
+    if lockPuzzle3.puzzleActive:
+            lockPuzzle3.checkIfDone()
 
     #Player sprite movement and background checks
     player.move()
@@ -227,9 +316,9 @@ while gameRun:
         player.setColWithObj(False)
 
     #Closing the puzzle if player changes the screen
-    if currentBg != puzzleScreen.bgNumber:
-        spritegroup3.remove(puzzleScreen.sprite)
-        puzzleScreen.puzzleActive = False
+    if lockPuzzle3.getPuzzleState():
+        if currentBg != lockPuzzle3.bgNumber:
+            lockPuzzle3.closeLockPuzzle()
 
     #print(currentBg)
     pygame.display.flip()

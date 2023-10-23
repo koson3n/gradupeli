@@ -47,6 +47,9 @@ def backgroundArrayLoader(fname):
         bgImageArray.append(img)
     return bgImageArray
 
+def loadSound (fname):
+    snd = pygame.mixer.Sound(f"{ASSET_FOLDER}/{fname}.wav")
+    return snd
 
 
         
