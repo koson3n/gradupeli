@@ -41,7 +41,7 @@ def loadSpriteImage(fname):
 
 def backgroundArrayLoader(fname):
     bgImageArray = []
-    for i in range(2):
+    for i in range(4):
         imgpath = f"{ASSET_FOLDER}/{fname}{i}.png"
         img = pygame.image.load(imgpath).convert()
         bgImageArray.append(img)
