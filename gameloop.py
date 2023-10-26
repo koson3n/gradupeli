@@ -27,7 +27,7 @@ lockCombinations = [[1, 2, 3]]
 
 #Gamesettings (60 normal, higher for testing purposes, cos the dude moves quicker)
 clock = pygame.time.Clock()
-fps = 60
+fps = 400
 #Character that is controlled by the player
 class Player:
     def __init__(self, health, stamina, level):
@@ -130,6 +130,21 @@ class PlatformItem:
         elif direction == 'right':
             self.sprite.rect.x = self.sprite.rect.x + 4
 
+    def toggleLooping(self):
+        if self.looping:
+            self.looping = False
+        else:
+            self.looping = True
+
+    def reset(self):
+        self.movingL = False
+        self.movingR = False
+        self.looping = False
+        self.waiting = False
+        self.tickStop = 200
+        self.sprite.rect.x = 200
+
+
 class LockPuzzle3:   
     def __init__(self, comb, crrbg):   
         self.sprite = gp.ObjectSprite(1, 'taskbase')
@@ -138,7 +153,7 @@ class LockPuzzle3:
         self.lockwheel3 = Button(1, 'wheel', 300, 70)
         self.openChest = gp.ObjectSprite(1, 'chest_open')
         #DONE = TRUE FOR TESTING PURPOSES ONLY!!!!
-        self.done = True
+        self.done = False
         self.notifShown = False
         self.soundPlayed = False
         self.bgNumber = crrbg
@@ -190,7 +205,8 @@ class BridgePuzzle:
         self.loopArrAct = Button(1, 'loop_arrow_active', 250, 100)
         self.fivesecArr = Button(1, '5sek', 350, 100)
         self.ansBox = GameItem('ans_box', 1)
-        self.execBtn = Button(0.4, 'exec_btn', 420, 220)
+        self.execBtn = Button(0.8, 'exec_btn', 425, 220)
+        self.resetBtn = Button(0.7, 'reset_btn', 440, 30)
         self.slots = []
         self.currSlot = 0
         self.comExecuting = False
@@ -210,6 +226,7 @@ class BridgePuzzle:
         spritegroup3.add(self.execBtn.sprite)
         spritegroup3.add(self.loopArr.sprite)
         spritegroup3.add(self.fivesecArr.sprite)
+        spritegroup3.add(self.resetBtn.sprite)
         self.puzzleActive = True
 
     def closePuzzle(self):
@@ -243,13 +260,13 @@ class BridgePuzzle:
     def emptyAnsBar(self):
         self.slots.clear()
 
-    def toggleLoop(self):
-        spritegroup3.remove(self.loopArr.sprite)
-        spritegroup3.add(self.loopArrAct.sprite)
+    def reset(self):
+        self.currSlot = 0
+        for i in range(len(self.slots)):
+            spritegroup3.remove(self.slots[i].decSprite)
+        self.emptyAnsBar()
+        
 
-    def unToggleLoop(self):
-        spritegroup3.remove(self.loopArrAct.sprite)
-        spritegroup3.add(self.loopArr.sprite)
 
 
 class Notification:
@@ -285,10 +302,10 @@ class Game:
 
 #UI elements    
 class Button:
-    def __init__(self,scale,name,x,y):
+    def __init__(self,scale=1,name='',x=0,y=0):
         self.name = name
         self.scale = scale
-        self.sprite = gp.ObjectSprite(1, name,x,y)
+        self.sprite = gp.ObjectSprite(scale, name,x,y)
         self.currNum = 0
         self.text = str(self.currNum)
         self.textSurf = getTextSurface(self.text)
@@ -345,10 +362,14 @@ def checkPosition(plat):
         plat.movingL = False
         return True
     
-#def checkWaitingTicks(plat):
+def changeIconToLooping(pzl):
+    spritegroup3.remove(pzl.loopArr.sprite)
+    spritegroup3.add(pzl.loopArrAct.sprite)
 
-
-
+def changeIconToNotLooping(pzl):
+    spritegroup3.remove(pzl.loopArrAct.sprite)
+    spritegroup3.add(pzl.loopArr.sprite)    
+    
 #Variables for various purposes in the loop
 gameRun = True
 
@@ -367,7 +388,6 @@ open_chest = GameItem('chest_open', 0.3)
 open_chest.decSprite.rect.x = 250
 open_chest.decSprite.rect.y = 465
 lockPuzzle3 = LockPuzzle3([1,2,3], 1)
-#doneNotif = Notification("The chest opens! You found a key from the chest!")
 
 #Puzzleitems for BACKGR 3
 bridge = PlatformItem('bridge', 1)
@@ -450,9 +470,6 @@ while gameRun:
                 moveRight = True
             if event.key == pygame.K_ESCAPE and lockPuzzle3.getPuzzleState():
                 lockPuzzle3.closePuzzle()
-#            if event.key == pygame.K_f and player.getColWithObj and lockPuzzle3.getPuzzleState() == False:
-#                lockPuzzle3.setPuzzleState(True)
-#                lockPuzzle3.openLockPuzzle()
             if event.key == pygame.K_f:
                 if lockPuzzle3.getPuzzleState() == False and player.playerSprite.rect.colliderect(chest.decSprite) and not lockPuzzle3.done:
                     lockPuzzle3.setPuzzleState(True)
@@ -460,10 +477,6 @@ while gameRun:
                 if bridgePuzzle.puzzleActive == False and player.playerSprite.rect.colliderect(terminal.decSprite):
                     bridgePuzzle.puzzleActive = True
                     bridgePuzzle.openPuzzle()
-                
-
-#        if event.type == pygame.MOUSEMOTION:
-
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             #Lockpuzzle3 buttons
@@ -487,21 +500,19 @@ while gameRun:
                 bridgePuzzle.addIconToAnsbar('right')
             if bridgePuzzle.fivesecArr.isClicked():
                 bridgePuzzle.addIconToAnsbar('5s')
-            if bridgePuzzle.loopArrAct.isClicked():
-                print("looparract")
-                bridge.looping = False
-                bridgePuzzle.unToggleLoop()
-            if bridgePuzzle.loopArr.isClicked():
-                print("looparr")
+            if bridgePuzzle.loopArr.isClicked() and not bridge.looping:
                 bridge.looping = True
-                bridgePuzzle.toggleLoop()
-            
+                spritegroup3.remove(bridgePuzzle.loopArr.sprite)
+                spritegroup3.add(bridgePuzzle.loopArrAct.sprite)
+            elif bridgePuzzle.loopArrAct.isClicked():
+                bridge.looping = False
+                spritegroup3.remove(bridgePuzzle.loopArrAct.sprite)
+                spritegroup3.add(bridgePuzzle.loopArr.sprite)
             if bridgePuzzle.execBtn.isClicked():
-                bridgePuzzle.executing = True
-                #if len(bridgePuzzle.slots) > 0:
-                #    execBridge(bridge, bridgePuzzle.slots)
-            
-
+                bridgePuzzle.executing = True  
+            if bridgePuzzle.resetBtn.isClicked():
+                bridgePuzzle.reset() 
+                bridge.reset()
              
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_a:
@@ -509,21 +520,23 @@ while gameRun:
             if event.key == pygame.K_d:
                 moveRight = False
 
-
     if bridgePuzzle.executing and bridgePuzzle.currSlot < len(bridgePuzzle.slots):
         if not bridge.waiting:
             execBridge(bridge, bridgePuzzle.slots[bridgePuzzle.currSlot])
             if checkPosition(bridge):
                 bridgePuzzle.currSlot = bridgePuzzle.currSlot + 1
         elif bridge.waiting:
-            print("moi")
             if bridge.tickStop == 0:
                 bridgePuzzle.currSlot += 1
                 bridge.waiting = False
+                bridge.tickStop = 200
             else:
                 bridge.tickStop -= 1
         else:
-            bridgePuzzle.currSlot += 1       
+            bridgePuzzle.currSlot += 1   
+    elif bridgePuzzle.executing and bridgePuzzle.currSlot == len(bridgePuzzle.slots) and bridge.looping:
+        bridgePuzzle.currSlot = 0
+  
         
     if bridge.movingR and bridge.sprite.rect.x <= 550:
         moveBridge(bridge, 'right')
@@ -537,8 +550,6 @@ while gameRun:
 
     if lockPuzzle3.puzzleActive:
             lockPuzzle3.checkIfDone()
-
-    print(bridgePuzzle.currSlot)
 
     #Player sprite movement and background checks
     player.move()
