@@ -837,6 +837,10 @@ while title:
     pygame.display.flip()
 
     for event in pygame.event.get():
+
+        if event.type == pygame.QUIT:
+                gameRun = False
+                pygame.quit()
         if event.type == pygame.MOUSEBUTTONDOWN:
             if start.isClicked():
                 gameRun = True
@@ -990,6 +994,7 @@ while title:
                     showHint(lockPuzzle3.hints)
                 if exit.isClicked():
                     gameRun = False
+                    title = False
 
                 #Bridgepuzzle buttons
                 if bridgePuzzle.backbutton.isClicked():
@@ -1121,7 +1126,7 @@ while title:
         player.move()
 
         #Changing background if player moves over from the right side
-        if player.sprite.rect.x >= 755 and currentBg < 5:
+        if player.sprite.rect.x >= 755 and currentBg < 4:
             if currentBg == 2 and not is_value_in_array(player.inventory, 'factory_key'):
                 spritegroup2.add(keyprompt.sprite)
                 player.sprite.rect.x = 755
@@ -1132,6 +1137,8 @@ while title:
         else:
             spritegroup2.remove(keyprompt.sprite)
 
+        if player.sprite.rect.x >= 755 and currentBg == 4:
+            player.sprite.rect.x = 754
         
         #-||- from the left side
         if player.sprite.rect.x <= -1 and currentBg != 0:
@@ -1185,7 +1192,7 @@ while title:
         else:
             spritegroup2.remove(open_chest.sprite)
 
-        if currentBg == 4 and hanoiPuzzle.checkIfWon() and gamewon == False:
+        if currentBg == 4 and hanoiPuzzle.done and gamewon == False:
             currentBg = currentBg + 1
             spritegroup2.empty()
             spritegroup3.empty()
@@ -1201,6 +1208,7 @@ while title:
         #print(currentBg)
         pygame.display.flip()
     gameRun = False
+
 
 pygame.quit()
     
