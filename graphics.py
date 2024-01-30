@@ -1,4 +1,3 @@
-import os
 import pygame
 
 ASSET_FOLDER = 'assets/'
@@ -30,6 +29,9 @@ class ObjectSprite (pygame.sprite.Sprite):
     def __repr__(self):
         return f"Scale: {self.scale}, name: {self.name}"
     
+    def update(self, new_image_file):
+        self.image = loadSpriteImage(new_image_file)
+    
 def getPlayerSprite():   
     sprite = MovableSprite()
     return sprite
@@ -41,7 +43,7 @@ def loadSpriteImage(fname):
 
 def backgroundArrayLoader(fname):
     bgImageArray = []
-    for i in range(4):
+    for i in range(6):
         imgpath = f"{ASSET_FOLDER}/{fname}{i}.png"
         img = pygame.image.load(imgpath).convert()
         bgImageArray.append(img)

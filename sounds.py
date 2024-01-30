@@ -1,4 +1,3 @@
-import os
 import pygame
 
 ASSET_FOLDER = 'assets/'
