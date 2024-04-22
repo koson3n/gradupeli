@@ -273,7 +273,6 @@ class BridgePuzzle:
         iconFivesecArrow = PuzzleIcon('5sek')
 
         if len(self.slots) >= 5:
-            print('ans bar full')
             return
 
         if icon == '5s':
@@ -333,9 +332,6 @@ class Hanoi:
         if self.checkIfWon():
             self.done = True
     
-    def moveInitiated(self, pillars, pillard):
-        if self.validMove(pillard, pillars[-1]):
-            print('valid move')
     
     def movePossible(self, startPillar, destPillar):
         if startPillar[0] < destPillar[0] or len(destPillar) == 0:
@@ -355,7 +351,6 @@ class Hanoi:
     def moveDisk(self, startPillar, destPillar):
         destPillar.append(startPillar[-1])
         startPillar.pop()
-        print(startPillar)
 
     def validMove(self):
         st = self.getPillar(self.pillarSt)
@@ -380,7 +375,6 @@ class Hanoi:
         spritegroup2.add(self.dial1.sprite)
         spritegroup2.add(self.dial1back.sprite)
         self.talkedToTheFactoryMan = True
-        print(self.talkedToTheFactoryMan)
 
     def closeDial1(self):
         spritegroup2.remove(self.dial1.sprite)
@@ -423,10 +417,6 @@ class Notification:
         lockPuzzle3.notifShown = True
         spritegroup3.empty()
         
-#Future development
-class Enemy:
-    def __init__(self):
-        print("nothing here yet")
 
 #Placeholder class for possible settings
 class Game: 
@@ -470,8 +460,6 @@ class ButtonHanoiDisk:
         mousePos = pygame.mouse.get_pos()
         return self.sprite.rect.collidepoint(mousePos)
     
-    def update(self):
-        print('update')
 
 
 
@@ -489,9 +477,6 @@ class ButtonHanoiPillar:
     def isClicked(self):
         mousePos = pygame.mouse.get_pos()
         return self.sprite.rect.collidepoint(mousePos)
-    
-    def update(self):
-        print('update')  
  
 def unselectDisk():
     disk1.selected = False
@@ -499,12 +484,9 @@ def unselectDisk():
     disk3.selected = False
     disk4.selected = False
     disk5.selected = False
-    #print('all unselected')
 
 def unselectPillars():
     pillar1.selected = False
-
-    print('all unselected')
 
 def getTextSurface(text):
     font = pygame.font.SysFont(None, 30)
@@ -637,7 +619,6 @@ def allPillarsUnselect(p1, p2, p3):
     p3.sprite.update('pillar')
 
 def gameWin():
-    print('Victory!')
     hanoiPuzzle.done = True
 
 def is_value_in_array(array, value):
@@ -941,8 +922,6 @@ while title:
             if event.type == pygame.QUIT:
                 gameRun = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_u:
-                    print(time / 60)
                 if event.key == pygame.K_a:
                     moveLeft = True
                 if event.key == pygame.K_d:
@@ -963,61 +942,63 @@ while title:
                     if hanoiPuzzle.done == False and currentBg == 4 and hanoiPuzzle.dial1done:
                         hanoiPuzzle.openDial2()
                     if hanoiPuzzle.remoteDrawn and currentBg == 0 and player.sprite.rect.colliderect(hanoiPuzzle.remote.sprite):
-                        print("remote picked")
                         player.inventory.append("remote")
                         pick.play()
                         hanoiPuzzle.undrawRemote()
                         hanoiPuzzle.dial1done = True
 
             if event.type == pygame.MOUSEBUTTONDOWN:
-                #Lockpuzzle3 buttons
-                if lockPuzzle3.backbutton.isClicked():
-                    lockPuzzle3.closeLockPuzzle()
-                if lockPuzzle3.notif.backbutton.isClicked():
-                    lockPuzzle3.notif.closeNotification()
-                if lockPuzzle3.lockwheel1.isClicked():
-                    lockPuzzle3.lockwheel1.update()
-                if lockPuzzle3.lockwheel2.isClicked():
-                    lockPuzzle3.lockwheel2.update()
-                if lockPuzzle3.lockwheel3.isClicked():
-                    lockPuzzle3.lockwheel3.update()
-                if lockPuzzle3.hintBackButton.isClicked():
-                    lockPuzzle3.closeHint()
-                if hintbutton.isClicked() and currentBg == 1:
-                    showHint(lockPuzzle3.hints)
-                if hintback.isClicked():
-                    unshowHint()
-                if hintnext.isClicked():
-                    if lockPuzzle3.hints < 3:
-                        lockPuzzle3.hints += 1
-                    unshowHint()
-                    showHint(lockPuzzle3.hints)
+                if currentBg == 1:
+                    #Lockpuzzle3 buttons
+                    if lockPuzzle3.backbutton.isClicked():
+                        lockPuzzle3.closeLockPuzzle()
+                    if lockPuzzle3.notif.backbutton.isClicked():
+                        lockPuzzle3.notif.closeNotification()
+                    if lockPuzzle3.lockwheel1.isClicked():
+                        lockPuzzle3.lockwheel1.update()
+                    if lockPuzzle3.lockwheel2.isClicked():
+                        lockPuzzle3.lockwheel2.update()
+                    if lockPuzzle3.lockwheel3.isClicked():
+                        lockPuzzle3.lockwheel3.update()
+                    if lockPuzzle3.hintBackButton.isClicked():
+                        lockPuzzle3.closeHint()
+                    if hintbutton.isClicked() and currentBg == 1:
+                        showHint(lockPuzzle3.hints)
+                    if hintback.isClicked():
+                        unshowHint()
+                    if hintnext.isClicked():
+                        if lockPuzzle3.hints < 3:
+                            lockPuzzle3.hints += 1
+                        unshowHint()
+                        showHint(lockPuzzle3.hints)
                 if exit.isClicked():
                     gameRun = False
                     title = False
 
                 #Bridgepuzzle buttons
-                if bridgePuzzle.backbutton.isClicked():
-                    bridgePuzzle.closePuzzle()
-                if bridgePuzzle.leftArr.isClicked():
-                    bridgePuzzle.addIconToAnsbar('left')
-                if bridgePuzzle.rightArr.isClicked():
-                    bridgePuzzle.addIconToAnsbar('right')
-                if bridgePuzzle.fivesecArr.isClicked():
-                    bridgePuzzle.addIconToAnsbar('5s')
-                if bridgePuzzle.loopArr.isClicked() and not bridge.looping:
-                    bridge.looping = True
-                    spritegroup3.remove(bridgePuzzle.loopArr.sprite)
-                    spritegroup3.add(bridgePuzzle.loopArrAct.sprite)
-                elif bridgePuzzle.loopArrAct.isClicked():
-                    bridge.looping = False
-                    spritegroup3.remove(bridgePuzzle.loopArrAct.sprite)
-                    spritegroup3.add(bridgePuzzle.loopArr.sprite)
-                if bridgePuzzle.execBtn.isClicked():
-                    bridgePuzzle.executing = True  
-                if bridgePuzzle.resetBtn.isClicked():
-                    bridgePuzzle.reset() 
-                    bridge.reset()
+                
+                if currentBg == 3:
+                    if bridgePuzzle.backbutton.isClicked():
+                        bridgePuzzle.closePuzzle()
+                    if bridgePuzzle.leftArr.isClicked():
+                        bridgePuzzle.addIconToAnsbar('left')
+                    if bridgePuzzle.rightArr.isClicked():
+                        bridgePuzzle.addIconToAnsbar('right')
+                    if bridgePuzzle.fivesecArr.isClicked():
+                        bridgePuzzle.addIconToAnsbar('5s')
+                    if bridgePuzzle.loopArr.isClicked() and not bridge.looping:
+                        bridge.looping = True
+                        spritegroup3.remove(bridgePuzzle.loopArr.sprite)
+                        spritegroup3.add(bridgePuzzle.loopArrAct.sprite)
+                    elif bridgePuzzle.loopArrAct.isClicked():
+                        bridge.looping = False
+                        spritegroup3.remove(bridgePuzzle.loopArrAct.sprite)
+                        spritegroup3.add(bridgePuzzle.loopArr.sprite)
+                    if bridgePuzzle.execBtn.isClicked():
+                        bridgePuzzle.executing = True  
+                    if bridgePuzzle.resetBtn.isClicked():
+                        bridgePuzzle.reset() 
+                        bridge.reset()
 
                 
                 #Hanoipuzzle
