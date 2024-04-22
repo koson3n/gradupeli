@@ -7,5 +7,5 @@ If you are interested in playing the game, it is found here: https://drive.googl
 When you have downloaded the .zip:
 
 - Unzip the folder
-- Navigate the folders until you see a file called "SpeedRunningChallenge"
+- Navigate the folders until you see a file called "SpeedRunningChallengeGame.exe"
 - Open it and play the game
